@@ -44,7 +44,13 @@ class TestRepo {
 
 	public function getTestsByConversionPagePostId($postId) {
 		global $wpdb;
-		$tests = $wpdb->get_results("SELECT * FROM ".$this->getTestTable()." WHERE conversion_page_id = '".$postId."' AND conversion_type = 'page'", OBJECT);
+
+        $sql = $wpdb->prepare(
+            "SELECT * FROM ".$this->getTestTable()." WHERE conversion_page_id = '%d' AND conversion_type = 'page'",
+            [ $postId ]
+        );
+
+		$tests = $wpdb->get_results($sql, OBJECT);
 
 		for ($i = 0; $i < sizeof($tests); $i++) {
 			$tests[$i]->variations = $this->getVariations($tests[$i]->id, false, false);
@@ -55,7 +61,13 @@ class TestRepo {
 
 	public function getRedirectTestsByUri($uri) {
 		global $wpdb;
-		$tests = $wpdb->get_results("SELECT * FROM ".$this->getTestTable()." WHERE test_uri = '".$uri."'", OBJECT);
+
+        $uri = str_replace("*", "%", $uri);
+        $sql = $wpdb->prepare(
+            "SELECT * FROM ".$this->getTestTable()." WHERE test_uri = '%s'",
+            [ $uri ]
+        );
+		$tests = $wpdb->get_results($sql, OBJECT);
 
 		for ($i = 0; $i < sizeof($tests); $i++) {
 			$tests[$i]->variations = $this->getVariations($tests[$i]->id, false, false);

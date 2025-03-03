@@ -24,7 +24,7 @@ class ConversionWidget extends Widget_Base {
 		return [ 'general' ];
 	}
 
-	protected function _register_controls() {
+	protected function register_controls() {
 
 		$testRepo = new TestRepo();
 

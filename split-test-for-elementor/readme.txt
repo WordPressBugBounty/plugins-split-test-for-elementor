@@ -2,7 +2,7 @@
 Contributors: novacreator
 Tags: Online Marketing, Split testing, Elementor
 Requires at least: 4.9
-Tested up to: 6.8.1
+Tested up to: 6.7.2
 Stable tag: 1.0.7
 License: Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
 License URI:
@@ -192,4 +192,8 @@ Click here for a complete walk through take a look a this video: [https://www.yo
 * Fixed home vs site url issue
 
 = 1.8.2 =
-* New wordpress version compatibility
+* Compatibility with new wordpress version
+
+= 1.8.3 =
+* Compatibility with new elementor version
+* Permission filter
