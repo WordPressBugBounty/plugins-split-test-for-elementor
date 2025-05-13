@@ -10,6 +10,7 @@ class Errors {
 	public static $CONVERSION_PAGE_MISSING = "CONVERSION_PAGE_MISSING";
 	public static $CONVERSION_URL_MISSING = "CONVERSION_URL_MISSING";
 	public static $MISSING_RIGHTS = "MISSING_RIGHTS";
+	public static $INVALID_INPUT = "INVALID_INPUT";
 
 	/* Conversion Tracking */
 	public static $MISSING_OR_EMPTY_TEST_ID = "MISSING_OR_EMPTY_TEST_ID";

@@ -39,6 +39,12 @@ class VariationController {
 		$variationName = $_POST['name'];
 		$variationPercentage = $_POST['percentage'];
 
+        if (!is_numeric($testId) || !is_numeric($variationPercentage)) {
+            return ['success' => false, 'errors' => [
+                ['key' => Errors::$INVALID_INPUT, 'message' => esc_html__( 'Could not save variation. Invalid input.', 'split-test-for-elementor' )]
+            ]];
+        }
+
 		if (self::$licenceManager->isLiteVariationCountReached($testId)) {
 			return ['success' => false, 'errors' => [
 				[
