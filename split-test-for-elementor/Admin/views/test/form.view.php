@@ -14,22 +14,28 @@ if ($scope == "edit") {
 ?>
 
 <div class="messages">
-	<?php if (isset($_GET['message']) && $_GET['message'] == "save_success") { ?>
+	<?php $__message = \SplitTestForElementor\Classes\Http\RSTGet::string('message'); ?>
+	<?php if ($__message == "save_success") { ?>
 		<div class="notice notice-success is-dismissible">
 			<p><?php esc_html_e( 'Test successfully saved', 'split-test-for-elementor' ); ?></p>
 		</div>
 	<?php } ?>
-	<?php if (isset($_GET['message']) && $_GET['message'] == "store_success") { ?>
+	<?php if ($__message == "store_success") { ?>
 		<div class="notice notice-success is-dismissible">
 			<p><?php esc_html_e( 'Test successfully created', 'split-test-for-elementor' ); ?></p>
 		</div>
 	<?php } ?>
-	<?php if (isset($_GET['message']) && $_GET['message'] == "error_test_page_invalid_chars") { ?>
+	<?php if ($__message == "error_test_page_invalid") { ?>
+		<div class="notice notice-warning is-dismissible">
+			<p><?php esc_html_e( 'The test could not be created. Test page URI is invalid.', 'split-test-for-elementor' ); ?></p>
+		</div>
+	<?php } ?>
+    <?php if ($__message == "error_test_page_invalid_chars") { ?>
 		<div class="notice notice-warning is-dismissible">
 			<p><?php esc_html_e( 'The test could not be created. Test page URI contains invalid chars.', 'split-test-for-elementor' ); ?></p>
 		</div>
 	<?php } ?>
-	<?php if (isset($_GET['message']) && $_GET['message'] == "error_test_page_taken") { ?>
+	<?php if ($__message == "error_test_page_taken") { ?>
 		<div class="notice notice-warning is-dismissible">
 			<p><?php esc_html_e( 'The test could not be created. Test page URL is already registered.', 'split-test-for-elementor' ); ?></p>
 		</div>
@@ -39,7 +45,7 @@ if ($scope == "edit") {
 <script type="application/javascript">
 	<?php // LOW@kberlau move to js file ?>
 
-	window.homeUrl = "<?php echo( home_url('/')); ?>";
+	window.homeUrl = "<?php echo esc_js(esc_url(home_url('/'))); ?>";
 
 	function getInt(value) {
 		var parsed = parseInt(value);
@@ -113,17 +119,17 @@ if ($scope == "edit") {
 
 	function registerFormSubmit() {
 		jQuery(".test-form #test-form").submit(function () {
-			var inputs = jQuery(this).find(".variation .percentage input");
-			var percentageCount = 0;
-			jQuery.each(inputs, function (index, value) {
-				percentageCount += getInt(jQuery(value).val());
-			});
+				var inputs = jQuery(this).find(".variation .percentage input");
+				var percentageCount = 0;
+				jQuery.each(inputs, function (index, value) {
+					percentageCount += getInt(jQuery(value).val());
+				});
 
-			if (percentageCount != 100) {
-				var message = "<?php esc_html_e( 'All variations are %PERCENTAGE% counted together but it has to be 100', 'split-test-for-elementor' ); ?>";
-				alert(message.replace("%PERCENTAGE%", percentageCount));
-				return false;
-			}
+				if (percentageCount != 100) {
+					var message = "<?php esc_html_e( 'All variations are %PERCENTAGE% counted together but it has to be 100', 'split-test-for-elementor' ); ?>";
+					alert(message.replace("%PERCENTAGE%", percentageCount));
+					return false;
+				}
 
 			var currentTestCount = jQuery(".split-test-for-elementor.test-form .test-variations .row.variation").length;
 			if (currentTestCount < 2) {
@@ -263,21 +269,38 @@ if ($scope == "edit") {
         document.execCommand("copy");
         $temp.remove();
     }
+
+    function copyFieldToClipboard(elementId, btn) {
+        var el = document.getElementById(elementId);
+        var text = el.tagName === 'TEXTAREA' ? el.value : el.value;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text);
+        } else {
+            el.select();
+            document.execCommand("copy");
+        }
+        if (btn) {
+            var $btn = jQuery(btn);
+            var original = $btn.html();
+            $btn.html('<span class="dashicons dashicons-yes" style="line-height:26px;"></span>');
+            setTimeout(function() { $btn.html(original); }, 1500);
+        }
+    }
 </script>
 
-<div class="wrap split-test-for-elementor test-form split-test-for-elementor-test-form split-test-for-elementor-test-<?php echo($scope); ?>">
+<div class="wrap split-test-for-elementor test-form split-test-for-elementor-test-form split-test-for-elementor-test-<?php echo esc_attr($scope); ?>">
 	<?php if ($scope == "edit") { ?>
-		<h1><?php esc_html_e( 'Edit Split Test', 'split-test-for-elementor' ); ?>: <?php echo($test->name); ?></h1>
+		<h1><?php esc_html_e( 'Edit Split Test', 'split-test-for-elementor' ); ?>: <?php echo esc_html($test->name); ?></h1>
 	<?php } else { ?>
 		<h1><?php esc_html_e( 'Create Split Test', 'split-test-for-elementor' ); ?></h1>
 	<?php } ?>
 
 	<div class="content-wrapper">
 
-		<form method="post" action="<?php echo $formUrl; ?>" id="test-form">
-			<input name="nonce" type="hidden" value="<?php echo(wp_create_nonce('test-nonce')); ?>" />
+		<form method="post" action="<?php echo esc_url($formUrl); ?>" id="test-form">
+			<input name="nonce" type="hidden" value="<?php echo esc_attr(wp_create_nonce('test-nonce')); ?>" />
 			<label for="test-name"><?php esc_html_e( 'Test name', 'split-test-for-elementor' ); ?>:</label>
-			<input id="test-name" name="test-name" type="text" value="<?php echo(isset($test->name) ? $test->name : ""); ?>" placeholder="<?php esc_html_e( 'Test Name', 'split-test-for-elementor' ); ?>" required /><br /><br />
+			<input id="test-name" name="test-name" type="text" value="<?php echo esc_attr(isset($test->name) ? $test->name : ""); ?>" placeholder="<?php esc_attr_e( 'Test Name', 'split-test-for-elementor' ); ?>" required /><br /><br />
 
 			<h2><?php esc_html_e( 'Test type', 'split-test-for-elementor' ); ?>:</h2>
 			<select name="test-type" style="width: 100%;">
@@ -291,11 +314,11 @@ if ($scope == "edit") {
 			<div class="test-uri-wrapper">
 				<div class="headline" style="margin-top: 14px;"><?php esc_html_e( 'Split test url', 'split-test-for-elementor' ); ?>:</div>
 				<div>
-                    <?php echo( home_url('/')); ?>
-                    <input name="test-uri" type="text" placeholder="identifier" pattern="^([A-Za-z0-9\-_\/]*)$" title="Only input letters, numbers, dashes and underscores" value="<?php echo(isset($test->test_uri) ? $test->test_uri : ""); ?>" style="width: 14em; display: inline-block;" />
+                    <?php echo esc_url(home_url('/')); ?>
+                    <input name="test-uri" type="text" placeholder="identifier" pattern="^([A-Za-z0-9\-_\/]*)$" title="Only input letters, numbers, dashes and underscores" value="<?php echo esc_attr(isset($test->test_uri) ? $test->test_uri : ""); ?>" style="width: 14em; display: inline-block;" />
                     <?php if(isset($test->test_type) && ($test->test_type == 'pages' || $test->test_type == 'urls')) { ?>
                         <div style="float: right;">
-                            <a class="button button-primary" id="test-page-url" target="_blank" href="<?php echo home_url() . '/' . $test->test_uri . '/'; ?>"><?php esc_html_e( 'View Page', 'split-test-for-elementor' ); ?></a>
+                            <a class="button button-primary" id="test-page-url" target="_blank" href="<?php echo esc_url(home_url('/') . $test->test_uri . '/'); ?>"><?php esc_html_e( 'View Page', 'split-test-for-elementor' ); ?></a>
                             <a href="javascript:void(0)" title="Copy Split Test URL" class="button button-primary" onclick="copyToClipboard('#test-page-url')"><span style="line-height: 26px;" class="dashicons dashicons-admin-page"></span></a>
                         </div>
                     <?php } ?>
@@ -315,29 +338,30 @@ if ($scope == "edit") {
 				</div>
 
 				<?php $i = 0; foreach ($test->variations as $variation) { ?>
-					<div class="row data variation" data-variation-id="<?php echo($variation->id); ?>">
+					<div class="row data variation" data-variation-id="<?php echo esc_attr($variation->id); ?>">
 						<div class="name">
-							<input id="test-name" name="test-variation[<?php echo($i); ?>][name]" type="text" value="<?php echo($variation->name); ?>" placeholder="<?php esc_html_e( 'Name', 'split-test-for-elementor' ); ?>" required />
+							<input id="test-name" name="test-variation[<?php echo esc_attr($i); ?>][name]" type="text" value="<?php echo esc_attr($variation->name); ?>" placeholder="<?php esc_attr_e( 'Name', 'split-test-for-elementor' ); ?>" required />
 						</div>
                         <div class="post">
-                            <select name="test-variation[<?php echo($i); ?>][post-id]">
+                            <select name="test-variation[<?php echo esc_attr($i); ?>][post-id]">
                                 <option value="null"></option>
 								<?php foreach ($posts as $post) { ?>
-                                    <option value="<?php echo($post->ID); ?>" <?php if(isset($variation->post_id) && $variation->post_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo($post->post_title); ?></option>
+                                    <option value="<?php echo esc_attr($post->ID); ?>" <?php if(isset($variation->post_id) && $variation->post_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo esc_html($post->post_title); ?></option>
 								<?php } ?>
                             </select>
                         </div>
 
                         <div class="url">
-                            <input type="text" placeholder="Add whole url with slash at last." name="test-variation[<?php echo($i); ?>][url]" value="<?php echo isset( $variation->url ) ? $variation->url : ''; ?>" />
+                            <!-- TODO@kberlau: Translate -->
+                            <input type="text" placeholder="Add whole url with slash at last." name="test-variation[<?php echo esc_attr($i); ?>][url]" value="<?php echo esc_attr(isset( $variation->url ) ? $variation->url : ''); ?>" />
                         </div>
 
 						<div class="percentage">
-							<input id="test-name" name="test-variation[<?php echo($i); ?>][percentage]" type="number" value="<?php echo($variation->percentage); ?>" placeholder="<?php esc_html_e( 'Percentage', 'split-test-for-elementor' ); ?>" required />
+							<input id="test-name" name="test-variation[<?php echo esc_attr($i); ?>][percentage]" type="number" value="<?php echo esc_attr($variation->percentage); ?>" placeholder="<?php esc_attr_e( 'Percentage', 'split-test-for-elementor' ); ?>" required />
 						</div>
 						<div class="actions">
 							<div class="button-primary button-delete">&times;</div>
-							<input id="test-name" name="test-variation[<?php echo($i); ?>][id]" type="hidden" value="<?php echo($variation->id); ?>" required />
+							<input id="test-name" name="test-variation[<?php echo esc_attr($i); ?>][id]" type="hidden" value="<?php echo esc_attr($variation->id); ?>" required />
 						</div>
 					</div>
 				<?php $i++; } ?>
@@ -357,28 +381,31 @@ if ($scope == "edit") {
 					<select name="test-conversion-page" style="width: 100%;">
 						<option value="null"></option>
 						<?php foreach ($posts as $post) { ?>
-							<option value="<?php echo($post->ID); ?>" <?php if(isset($test->conversion_page_id) && $test->conversion_page_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo($post->post_title); ?></option>
+							<option value="<?php echo esc_attr($post->ID); ?>" <?php if(isset($test->conversion_page_id) && $test->conversion_page_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo esc_html($post->post_title); ?></option>
 						<?php } ?>
 					</select>
 				</div>
 
 				<div class="test-conversion-url-wrapper">
 					<div for="test-conversion-type"><?php esc_html_e( 'Conversion Url', 'split-test-for-elementor' ); ?>:</div>
-					<input type="text" name="test-conversion-url" value="<?php echo isset($test->conversion_url) && $test->conversion_url != null ? $test->conversion_url : '' ?>"
-						   placeholder="<?php esc_html_e( 'A Url on your page like e.x. ', 'split-test-for-elementor' ); ?><?php echo get_home_url(); ?>" />
+					<input type="text" name="test-conversion-url" value="<?php echo esc_attr(isset($test->conversion_url) && $test->conversion_url != null ? $test->conversion_url : ''); ?>"
+						   placeholder="<?php esc_attr_e( 'A Url on your page like e.x. ', 'split-test-for-elementor' ); ?><?php echo esc_attr(esc_url(get_home_url())); ?>" />
 				</div>
 
 				<div class="test-conversion-link-wrapper">
 					<div for="test-conversion-type"><?php esc_html_e( 'External Link', 'split-test-for-elementor' ); ?>:</div>
-					<input type="text" name="test-external-link" value="<?php echo isset($test->external_link) && $test->external_link != null ? $test->external_link : '' ?>"
-						   placeholder="<?php esc_html_e( 'An external Url after opening the conversion the user will be redirect to', 'split-test-for-elementor' ); ?>" />
+					<input type="text" name="test-external-link" value="<?php echo esc_attr(isset($test->external_link) && $test->external_link != null ? $test->external_link : ''); ?>"
+						   placeholder="<?php esc_attr_e( 'An external Url after opening the conversion the user will be redirect to', 'split-test-for-elementor' ); ?>" />
 
 					<div for="test-conversion-type"><?php esc_html_e( 'Redirect Link', 'split-test-for-elementor' ); ?>:</div>
 					<?php
 					if (isset($test->id) && $test->id != null) {
 						$trackingUrl = rtrim(get_home_url(), "/")."/split-test-for-elementor/v1/tests/".$test->id."/external-link-redirect/";
 						?>
-						<input type="text" name="tracking-url" readonly value="<?php echo $trackingUrl; ?>" />
+						<div style="display:flex; gap:6px; align-items:center;">
+							<input type="text" id="redirect-link-url" name="tracking-url" readonly value="<?php echo esc_url($trackingUrl); ?>" style="flex:1;" />
+							<button type="button" class="button button-secondary" onclick="copyFieldToClipboard('redirect-link-url', this)" title="<?php esc_attr_e('Copy to clipboard', 'split-test-for-elementor'); ?>"><span class="dashicons dashicons-admin-page" style="line-height:26px;"></span></button>
+						</div>
 						<?php
 					} else {
 						?>
@@ -397,7 +424,10 @@ if ($scope == "edit") {
 						if (isset($test->id) && $test->id != null) {
 							$trackingUrl = rtrim(get_home_url(), "/")."/split-test-for-elementor/v1/tests/".$test->id."/track-conversion/";
 							?>
-							<textarea readonly id="external-page-tracking-code"><img src="<?php echo($trackingUrl); ?>" alt="" /></textarea>
+							<div style="display:flex; gap:6px; align-items:flex-start;">
+								<textarea readonly id="external-page-tracking-code" style="flex:1;"><img src="<?php echo esc_url($trackingUrl); ?>" alt="" /></textarea>
+								<button type="button" class="button button-secondary" onclick="copyFieldToClipboard('external-page-tracking-code', this)" title="<?php esc_attr_e('Copy to clipboard', 'split-test-for-elementor'); ?>"><span class="dashicons dashicons-admin-page" style="line-height:26px;"></span></button>
+							</div>
 							<?php
 						} else {
 							?>
@@ -411,27 +441,27 @@ if ($scope == "edit") {
 				</div>
 			</div>
 
-			<input type="hidden" name="variation-count" value="<?php echo($i); ?>" />
-			<input type="hidden" name="test-id" value="<?php echo($test->id); ?>" />
-			<input class="button-primary button-save" type="submit" value="<?php esc_html_e( 'Save', 'split-test-for-elementor' ); ?>" />
+			<input type="hidden" name="variation-count" value="<?php echo esc_attr($i); ?>" />
+			<input type="hidden" name="test-id" value="<?php echo esc_attr($test->id); ?>" />
+			<input class="button-primary button-save" type="submit" value="<?php esc_attr_e( 'Save', 'split-test-for-elementor' ); ?>" />
 			<?php if (isset($test->id) && $test->id != null) { ?>
-				<input class="button-primary button-reset-stats button-delete" type="button" style="float: right; margin-top: 10px;" value="<?php esc_html_e( 'Reset Statistics', 'split-test-for-elementor' ); ?>" />
+				<input class="button-primary button-reset-stats button-delete" type="button" style="float: right; margin-top: 10px;" value="<?php esc_attr_e( 'Reset Statistics', 'split-test-for-elementor' ); ?>" />
 			<?php } ?>
 
 		</form>
 
-		<form method="post" action="<?php echo $resetStatsFormUrl; ?>" id="reset-statistics-form">
-			<input name="nonce" type="hidden" value="<?php echo(wp_create_nonce('test-nonce')); ?>" />
-			<input type="hidden" name="test-id" value="<?php echo($test->id); ?>" />
+		<form method="post" action="<?php echo esc_url($resetStatsFormUrl); ?>" id="reset-statistics-form">
+			<input name="nonce" type="hidden" value="<?php echo esc_attr(wp_create_nonce('test-nonce')); ?>" />
+			<input type="hidden" name="test-id" value="<?php echo esc_attr($test->id); ?>" />
 		</form>
 
-		<?php if ($postsForTest != null && sizeof($postsForTest) > 0) { ?>
+		<?php if ($postsForTest != null && count($postsForTest) > 0) { ?>
 			<div class="test-pages">
 				<h2><?php esc_html_e( 'Posts this test is used on', 'split-test-for-elementor' ); ?>:</h2>
 				<?php foreach($postsForTest as $post) { ?>
 					<div class="test-page">
-						<a href="<?php echo(get_permalink($post->ID)); ?>" target="_blank"><?php echo($post->post_title); ?></a>
-						[<a href="<?php echo(get_admin_url()."post.php?post=".$post->ID."&action=elementor"); ?>" target="_blank"><?php esc_html_e( 'edit', 'split-test-for-elementor' ); ?></a>]
+						<a href="<?php echo esc_url(get_permalink($post->ID)); ?>" target="_blank"><?php echo esc_html($post->post_title); ?></a>
+						[<a href="<?php echo esc_url(get_admin_url() . "post.php?post=" . $post->ID . "&action=elementor"); ?>" target="_blank"><?php esc_html_e( 'edit', 'split-test-for-elementor' ); ?></a>]
 					</div>
 				<?php }?>
 			</div>
@@ -441,13 +471,13 @@ if ($scope == "edit") {
 			<div id="test-variation-row-template">
 				<div class="row data variation" data-variation-id="VARIATION_ID">
 					<div class="name">
-						<input id="test-name" name="test-variation[TEST_COUNT][name]" type="text" value="" placeholder="<?php esc_html_e( 'name', 'split-test-for-elementor' ); ?>" required />
+						<input id="test-name" name="test-variation[TEST_COUNT][name]" type="text" value="" placeholder="<?php esc_attr_e( 'name', 'split-test-for-elementor' ); ?>" required />
 					</div>
 					<div class="post">
 						<select name="test-variation[TEST_COUNT][post-id]">
 							<option value="null"></option>
 							<?php foreach ($posts as $post) { ?>
-								<option value="<?php echo($post->ID); ?>" <?php if(isset($variation->post_id) && $variation->post_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo($post->post_title); ?></option>
+								<option value="<?php echo esc_attr($post->ID); ?>" <?php if(isset($variation->post_id) && $variation->post_id == $post->ID) { echo('selected="selected"'); } ?>><?php echo esc_html($post->post_title); ?></option>
 							<?php } ?>
 						</select>
 					</div>
@@ -457,7 +487,7 @@ if ($scope == "edit") {
 					</div>
 
 					<div class="percentage">
-						<input id="test-name" name="test-variation[TEST_COUNT][percentage]" type="number" value="" placeholder="<?php esc_html_e( 'percentage', 'split-test-for-elementor' ); ?>" required />
+						<input id="test-name" name="test-variation[TEST_COUNT][percentage]" type="number" value="" placeholder="<?php esc_attr_e( 'percentage', 'split-test-for-elementor' ); ?>" required />
 					</div>
 					<div class="actions">
 						<div class="button-primary button-delete">&times;</div>

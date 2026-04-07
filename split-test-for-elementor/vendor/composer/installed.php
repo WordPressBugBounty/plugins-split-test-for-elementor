@@ -1,22 +1,22 @@
 <?php return array(
     'root' => array(
+        'name' => 'rocketelements/split-test-for-elementor',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
+        'reference' => 'd1db5be9fd740020eb7d6bac26830ee2f79a2160',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '3b5c137899209c3dceb3bc20012b0998f4acd6c7',
-        'name' => 'rocketelements/split-test-for-elementor',
         'dev' => true,
     ),
     'versions' => array(
         'rocketelements/split-test-for-elementor' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
+            'reference' => 'd1db5be9fd740020eb7d6bac26830ee2f79a2160',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '3b5c137899209c3dceb3bc20012b0998f4acd6c7',
             'dev_requirement' => false,
         ),
     ),

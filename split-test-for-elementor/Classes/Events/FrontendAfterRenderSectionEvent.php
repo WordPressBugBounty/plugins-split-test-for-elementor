@@ -37,7 +37,9 @@ class FrontendAfterRenderSectionEvent
 			return;
 		}
 
-		$class = 'elementor-split-test-hidden-'.$element->get_id();
+		$class    = 'elementor-split-test-hidden-' . (int) $element->get_id();
+		$testId   = (int) $testId;
+        $variationId    = (int) $variationId;
 
 		?>
 
@@ -45,8 +47,8 @@ class FrontendAfterRenderSectionEvent
 			try {
 				var sections = document.getElementsByClassName("<?php echo($class); ?>");
 				if (sections.length > 0) {
-					if (window.window.rocketSplitTest.isActiveVariation(<?php echo($testId); ?>, <?php echo($variationId); ?>)) {
-						sections[0].className = sections[0].className.replace(/\b<?php echo($class); ?>\b/g, "");
+					if (window.window.rocketSplitTest.isActiveVariation(<?php echo ($testId); ?>, <?php echo ($variationId); ?>)) {
+						sections[0].className = sections[0].className.replace(/\b<?php echo ($class); ?>\b/g, "");
 					} else {
 						sections[0].innerHTML = "";
 						sections[0].parentNode.removeChild(sections[0]);

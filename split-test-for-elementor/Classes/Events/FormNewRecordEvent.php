@@ -2,7 +2,7 @@
 
 namespace SplitTestForElementor\Classes\Events;
 
-use SplitTestForElementor\Classes\Misc\Constants;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Services\ConversionTracker;
 
 class FormNewRecordEvent
@@ -16,10 +16,9 @@ class FormNewRecordEvent
 	}
 
 	public function fire($record, $handler) {
-		if (!isset($_COOKIE[Constants::$SPLIT_TEST_CLIENT_ID_COOKIE])) {
+		$clientId = RSTCookie::uuid(RSTCookie::CLIENT_ID);
+		if ($clientId === null) {
 			return;
-		} else {
-			$clientId = $_COOKIE[Constants::$SPLIT_TEST_CLIENT_ID_COOKIE];
 		}
 
 		$testId = $record->get_form_settings( 'split_test_control_test_id' );

@@ -2,55 +2,52 @@
 
 namespace SplitTestForElementor\Classes\Repo;
 
+use SplitTestForElementor\Classes\Database\RSTQueryBuilder;
 
 class PostTestRepo {
 
 	public function updateTestRegistry($postId, $splitTestIds) {
-
-		global $wpdb;
-
-		$splitTestPostTable = $this->getTestPostTable($wpdb);
-
-		$wpdb->delete($splitTestPostTable, array('post_id' => $postId));
+		RSTQueryBuilder::table('elementor_splittest_post')
+			->where('post_id', (int) $postId)
+			->delete();
 
 		foreach ($splitTestIds as $splitTestId => $active) {
-			$result = $wpdb->insert($splitTestPostTable, array(
-				'splittest_id' => $splitTestId,
-				'post_id' => $postId,
-				'created_at' => current_time('mysql')
-			), array('%d', '%d', '%s'));
+			RSTQueryBuilder::table('elementor_splittest_post')
+				->insert([
+					'splittest_id' => (int) $splitTestId,
+					'post_id'      => (int) $postId,
+					'created_at'   => current_time('mysql'),
+				]);
 		}
-
 	}
 
-	public function getPostsForTest($testId){
-		global $wpdb;
-		$query[] = "SELECT * FROM ".$this->getTestPostTable($wpdb);
-		$query[] = "INNER JOIN ".$wpdb->prefix."posts ON ".$this->getTestPostTable($wpdb).".post_id = ".$wpdb->prefix."posts.ID";
-		$query[] = "WHERE splittest_id = ".$testId;
-		return $wpdb->get_results(implode(" ", $query), OBJECT);
+	public function getPostsForTest($testId) {
+		$postTestTable = RSTQueryBuilder::prefix('elementor_splittest_post');
+		$postsTable    = RSTQueryBuilder::prefix('posts');
+
+		return RSTQueryBuilder::table('elementor_splittest_post')
+			->join($postsTable, "{$postTestTable}.post_id", '=', "{$postsTable}.ID")
+			->where('splittest_id', (int) $testId)
+			->get();
 	}
 
 	public function getTestIdsForPost($postId) {
-		global $wpdb;
-
-		$postsTests = $wpdb->get_results("SELECT * FROM ".$this->getTestPostTable($wpdb)." WHERE post_id = ".$postId, OBJECT);
+		$postTests = RSTQueryBuilder::table('elementor_splittest_post')
+			->where('post_id', (int) $postId)
+			->get();
 
 		$testIds = [];
-		foreach ($postsTests as $postsTest) {
-			$testIds[] = $postsTest->splittest_id;
+		foreach ($postTests as $postTest) {
+			$testIds[] = $postTest->splittest_id;
 		}
 
 		return $testIds;
 	}
 
 	public function deletePostTestByTestId($splitTestID) {
-		global $wpdb;
-		$wpdb->delete($this->getTestPostTable($wpdb), ['splittest_id' => $splitTestID], ['%d']);
-	}
-
-	private function getTestPostTable($wpdb) {
-		return $wpdb->prefix . "elementor_splittest_post";
+		RSTQueryBuilder::table('elementor_splittest_post')
+			->where('splittest_id', (int) $splitTestID)
+			->delete();
 	}
 
 }

@@ -5,55 +5,68 @@ $licenceManager = new \SplitTestForElementor\classes\misc\LicenceManager();
 <div class="wrap split-test-for-elementor-test-index">
 
 	<div class="messages">
+		<?php $__message = \SplitTestForElementor\Classes\Http\RSTGet::string('message'); ?>
 		<?php if ($licenceManager->isLiteTestCountReached()) { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p><a href="<?php echo(SPLIT_TEST_FOR_ELEMENTOR_PRO_VERSION_LINK); ?>" target="_blank"><?php esc_html_e( 'To add more Tests buy the pro version', 'split-test-for-elementor' ); ?></a></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "delete_success") { ?>
+		<?php if ($__message == "delete_success") { ?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( 'Test successfully deleted', 'split-test-for-elementor' ); ?></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "error_store_data_missing") { ?>
+		<?php if ($__message == "error_store_data_missing") { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p><a href="<?php echo(SPLIT_TEST_FOR_ELEMENTOR_SUPPORT_LINK); ?>" target="_blank"><?php esc_html_e( 'The test could not be saved. Form data missing. Contact support.', 'split-test-for-elementor' ); ?></a></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "security_error") { ?>
+		<?php if ($__message == "security_error") { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p>Security Error</p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "error_conversion_page_missing") { ?>
+		<?php if ($__message == "error_conversion_page_missing") { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p><?php esc_html_e( 'The test could not be saved. Conversion page missing.', 'split-test-for-elementor' ); ?></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "error_update_data_missing") { ?>
+		<?php if ($__message == "error_update_data_missing") { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p><a href="<?php echo(SPLIT_TEST_FOR_ELEMENTOR_SUPPORT_LINK); ?>" target="_blank"><?php esc_html_e( 'The test could not be saved. Form data missing. Contact support.', 'split-test-for-elementor' ); ?></a></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "error_conversion_url_missing") { ?>
-			<div class="notice notice-warning is-dismissible">
-				<p><?php esc_html_e( 'The test could not be saved. Conversion url missing.', 'split-test-for-elementor' ); ?></p>
-			</div>
-		<?php } ?>
+        <?php if ($__message == "error_conversion_url_missing") { ?>
+            <div class="notice notice-warning is-dismissible">
+                <p><?php esc_html_e( 'The test could not be saved. Conversion url missing.', 'split-test-for-elementor' ); ?></p>
+            </div>
+        <?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "error_delete") { ?>
+        <?php if ($__message == "error_conversion_url_invalid") { ?>
+            <div class="notice notice-warning is-dismissible">
+                <p><?php esc_html_e( 'The test could not be saved. Conversion url invalid.', 'split-test-for-elementor' ); ?></p>
+            </div>
+        <?php } ?>
+
+        <?php if ($__message == "error_external_link_url_invalid") { ?>
+            <div class="notice notice-warning is-dismissible">
+                <p><?php esc_html_e( 'The test could not be saved. External link url invalid.', 'split-test-for-elementor' ); ?></p>
+            </div>
+        <?php } ?>
+
+		<?php if ($__message == "error_delete") { ?>
 			<div class="notice notice-warning is-dismissible">
 				<p><a href="<?php echo(SPLIT_TEST_FOR_ELEMENTOR_SUPPORT_LINK); ?>" target="_blank"><?php esc_html_e( 'The test could not be deleted. Contact support.', 'split-test-for-elementor' ); ?></a></p>
 			</div>
 		<?php } ?>
 
-		<?php if (isset($_GET['message']) && $_GET['message'] == "reset_success") { ?>
+		<?php if ($__message == "reset_success") { ?>
 			<div class="notice notice-success is-dismissible">
 				<p><?php esc_html_e( 'Successfully reset statistics for test', 'split-test-for-elementor' ); ?></p>
 			</div>
@@ -88,17 +101,17 @@ $licenceManager = new \SplitTestForElementor\classes\misc\LicenceManager();
 				<?php foreach ($tests as $test) { ?>
 					<tr id="test-<?php echo( $test->id ); ?>" class="iedit hentry">
 						<td class="name-col">
-							<a href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=edit&id=' . $test->id ); ?>"><?php echo( $test->name ); ?></a>
+							<a href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=edit&id=' . esc_attr($test->id) ); ?>"><?php echo esc_html( $test->name ); ?></a>
 						</td>
 						<td class="button-col">
-							<a class="button" href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=statistics&action=index&id=' . $test->id ); ?>"><?php esc_html_e( 'Statistics', 'split-test-for-elementor' ); ?></a>
-							<a class="button" href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=edit&id=' . $test->id ); ?>"><?php esc_html_e( 'Edit', 'split-test-for-elementor' ); ?></a>
+							<a class="button" href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=statistics&action=index&id=' . esc_attr($test->id) ); ?>"><?php esc_html_e( 'Statistics', 'split-test-for-elementor' ); ?></a>
+							<a class="button" href="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=edit&id=' . esc_attr($test->id) ); ?>"><?php esc_html_e( 'Edit', 'split-test-for-elementor' ); ?></a>
 
 							<?php // LOW@kberlau: Implement ?>
 <!--							<a class="button wc-action-button wc-action-button-complete complete"-->
-<!--							   href="--><?php //echo admin_url( 'admin.php?page=splittest-for-elementor&scope=statistics&action=deactivate&id=' . $test->id ); ?><!--">Deactivate</a>-->
+<!--							   href="--><?php //echo admin_url( 'admin.php?page=splittest-for-elementor&scope=statistics&action=deactivate&id=' . esc_attr($test->id) ); ?><!--">Deactivate</a>-->
 							<?php // LOW@kberlau: Implement ?>
-							<form action="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=delete&id=' . $test->id ); ?>" style="display: inline;" method="post">
+							<form action="<?php echo admin_url( 'admin.php?page=splittest-for-elementor&scope=test&action=delete&id=' . esc_attr($test->id) ); ?>" style="display: inline;" method="post">
 								<input name="nonce" type="hidden" value="<?php echo(wp_create_nonce('test-nonce')); ?>" />
 								<input type="submit" class="button" value="<?php esc_html_e( 'Delete', 'split-test-for-elementor' ); ?>">
 							</form>

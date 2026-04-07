@@ -2,9 +2,12 @@
 
 namespace SplitTestForElementor\Classes\Endpoints;
 
-use SplitTestForElementor\Classes\Misc\Constants;
+use SplitTestForElementor\Classes\Http\RSTGet;
+use SplitTestForElementor\Classes\Http\RSTPost;
 use SplitTestForElementor\Classes\Misc\Errors;
 use SplitTestForElementor\Classes\Misc\LicenceManager;
+use SplitTestForElementor\Classes\Misc\ResponseHelper;
+use SplitTestForElementor\Classes\Misc\SecurityHelper;
 use SplitTestForElementor\Classes\Repo\TestRepo;
 use SplitTestForElementor\Classes\Services\TestService;
 
@@ -32,61 +35,43 @@ class TestController {
 	}
 
 	public function store() {
-		if(!current_user_can('publish_pages')) {
-			return ['success' => false, 'errors' => [
-				['key' => Errors::$MISSING_RIGHTS, 'message' => esc_html__( 'Could not save test. Current user has insufficient rights.', 'split-test-for-elementor' )]
-			]];
+		// TODO@kberlau: Centralize Logic
+		if(!SecurityHelper::userHasTestEditPermission()) {
+			return ResponseHelper::generateErrorResponse(Errors::$MISSING_RIGHTS, 'Could not save test. Current user has insufficient rights.');
 		}
 
-		//TODO@kberlau: Validate input
-		$testName = $_POST['name'];
-		if (!isset($_POST['conversionType'])) {
-			return ['success' => false, 'errors' => [
-				['key' => Errors::$CONVERSION_TYPE_MISSING, 'message' => esc_html__( 'Could not save test. Conversion type missing.', 'split-test-for-elementor' )]
-			]];
+		$testName = RSTPost::string('name');
+		if (!RSTPost::has('conversionType')) {
+			return ResponseHelper::generateErrorResponse(Errors::$CONVERSION_TYPE_MISSING, 'Could not save test. Conversion type missing.');
 		}
 
 		if (self::$licenceManager->isLiteTestCountReached()) {
-			return ['success' => false, 'errors' => [
-				[
-					'key' => Errors::$MAXIMUM_TEST_COUNT_REACHED,
-					'message' => esc_html__( 'Could not save test. Maximum test count for pro version reached. Please buy licence.', 'split-test-for-elementor' ),
-					'payload' => ['link' => SPLIT_TEST_FOR_ELEMENTOR_PRO_VERSION_LINK]
-				]
-			]];
+			return ResponseHelper::generateErrorResponse(Errors::$MAXIMUM_TEST_COUNT_REACHED, 'Could not save test. Maximum test count for pro version reached. Please buy licence.');
 		}
 
-		if ($_POST['conversionType'] == "page") {
-			if (!isset($_POST['conversionPageId']) || $_POST['conversionPageId'] == null || $_POST['conversionPageId'] == "" || $_POST['conversionPageId'] == "null") {
-				return ['success' => false, 'errors' => [
-					[
-						'key' => Errors::$CONVERSION_PAGE_MISSING,
-						'message' => esc_html__( 'Could not save test. Conversion page missing.', 'split-test-for-elementor' ),
-						'payload' => ['link' => SPLIT_TEST_FOR_ELEMENTOR_PRO_VERSION_LINK]
-					]
-				]];
-			}
-		}
+		$conversionType = RSTPost::string('conversionType');
 
-		if ($_POST['conversionType'] == "url") {
-			if (!isset($_POST['conversionUrl']) || $_POST['conversionUrl'] == null || $_POST['conversionUrl'] == "" || $_POST['conversionUrl'] == "null") {
-				return ['success' => false, 'errors' => [
-					[
-						'key' => Errors::$CONVERSION_URL_MISSING,
-						'message' => esc_html__( 'Could not save test. Conversion url missing.', 'split-test-for-elementor' ),
-						'payload' => ['link' => SPLIT_TEST_FOR_ELEMENTOR_PRO_VERSION_LINK]
-					]
-				]];
+		if ($conversionType == "page") {
+			$conversionPageId = RSTPost::string('conversionPageId');
+			if (!RSTPost::has('conversionPageId') || $conversionPageId == "" || $conversionPageId == "null") {
+				return ResponseHelper::generateErrorResponse( Errors::$CONVERSION_PAGE_MISSING,  'Could not save test. Conversion page missing.');
 			}
+		} else if ($conversionType == "url") {
+			$conversionUrl = RSTPost::string('conversionUrl', '', false);
+			if (!RSTPost::has('conversionUrl') || $conversionUrl == "" || $conversionUrl == "null") {
+				return ResponseHelper::generateErrorResponse(Errors::$CONVERSION_URL_MISSING, 'Could not save test. Conversion url missing.');
+			}
+		} else {
+			return ResponseHelper::generateErrorResponse(Errors::$INVALID_INPUT, 'Could not save test. Conversion type is invalid.');
 		}
 
 		$repo = new TestRepo();
 		$newTestId = $repo->createTest([
 			'name' => $testName,
 			'testType' => 'elements',
-			'conversionType' => $_POST['conversionType'],
-			'conversionPageId' => (int) $_POST['conversionPageId'],
-			'conversionUrl' => $_POST['conversionUrl']
+			'conversionType' => $conversionType,
+			'conversionPageId' => RSTPost::int('conversionPageId'),
+			'conversionUrl' => RSTPost::has('conversionUrl') ? esc_url_raw(RSTPost::string('conversionUrl', '', false)) : ''
 		]);
 
 		return ['success' => true, 'id' => $newTestId, 'name' => $testName];
@@ -110,11 +95,9 @@ class TestController {
 
     public function getVariationToDisplay() {
 
-        if (!is_numeric($_GET['testId'])) {
+        if (!RSTGet::tryGetInt('testId', $testId)) {
             return [];
         }
-
-        $testId = intval($_GET['testId']);
         $result = self::$testService->getActiveVariation($testId);
 
         return [

@@ -3,9 +3,7 @@
 namespace SplitTestForElementor\Classes\Services;
 
 use SplitTestForElementor\Classes\Misc\SettingsManager;
-use SplitTestForElementor\Classes\Services\ConversionTracker;
-use SplitTestForElementor\Classes\Misc\Constants;
-use SplitTestForElementor\Classes\Misc\Util;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Repo\PostTestManager;
 use SplitTestForElementor\Classes\Repo\PostTestRepo;
 use SplitTestForElementor\Classes\Repo\TestRepo;
@@ -77,12 +75,11 @@ class ExternalLinkTrackingService {
         if ($test == null) {
             return;
         }
-        $cookieName = "elementor_split_test_".$test->id."_variation";
-        if(!isset($_COOKIE[$cookieName])) {
+        if (!RSTCookie::has($test->id . '_variation')) {
             return;
         }
 
-        $variationId = (int) $_COOKIE[$cookieName];
+        $variationId = RSTCookie::int($test->id . '_variation');
         foreach ($test->variations as $variation) {
             if ($variationId == $variation->id) {
                 self::$conversionTrack->trackConversion($test->id, $variationId, $rocketSplitTestClientId);
@@ -112,8 +109,8 @@ class ExternalLinkTrackingService {
 		}
 
 		$test = self::$testRepo->getTest($testId);
-		if ($test != null) {
-			header('Location: ' . $test->external_link, true, 302);
+		if ($test != null && !empty($test->external_link) && wp_http_validate_url($test->external_link)) {
+			header('Location: ' . esc_url_raw($test->external_link), true, 302);
 			exit();
 		}
 		die();

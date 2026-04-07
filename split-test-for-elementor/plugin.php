@@ -2,29 +2,29 @@
 
 use SplitTestForElementor\Admin\Classes\Controllers\SplitTestController;
 use SplitTestForElementor\Admin\Classes\Controllers\StatisticsController;
-use SplitTestForElementor\Admin\Classes\Elementor\ConversionWidget;
 use SplitTestForElementor\Admin\Classes\Events\AdminInitEvent;
 use SplitTestForElementor\Admin\Classes\Events\AfterSectionEndEvent;
 use SplitTestForElementor\Classes\Endpoints\TestController;
 use SplitTestForElementor\Classes\Endpoints\VariationController;
 use SplitTestForElementor\Classes\Events\FormNewRecordEvent;
-use SplitTestForElementor\Classes\Events\FormSubmitEvent;
 use SplitTestForElementor\Classes\Events\FrontendBeforeRenderEvent;
 use SplitTestForElementor\Classes\Events\SendHeadersEvent;
 use SplitTestForElementor\Classes\Events\WidgetRenderContentEvent;
 use SplitTestForElementor\Classes\Events\WpHeaderEvent;
 use SplitTestForElementor\Classes\Events\SectionShouldRenderEvent;
 use SplitTestForElementor\Classes\Install\DB;
+use SplitTestForElementor\Classes\Misc\SecurityHelper;
 use SplitTestForElementor\Classes\Repo\PostTestManager;
 use SplitTestForElementor\Classes\Services\ExternalLinkTrackingService;
 use SplitTestForElementor\Classes\Services\SettingsPage;
 use SplitTestForElementor\Classes\Update\UpdateManager;
 use SplitTestForElementor\Classes\Services\ExternalPageTrackingService;
+use SplitTestForElementor\Classes\Http\RSTGet;
 use SplitTestForElementor\Classes\Services\CacheCheckService;
 
 /**
  * @package SplitTestForElementor
- * @version 1.8.4
+ * @version 1.8.5
  * @copyright Copyright (C) 2025 Rocket Elements
  * @license Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
 
@@ -32,7 +32,7 @@ use SplitTestForElementor\Classes\Services\CacheCheckService;
  * Plugin URI: https://wordpress.org/plugins/split-test-for-elementor/
  * Description: Split Test For Elementor
  * Author: Rocket Elements
- * Version: 1.8.4
+ * Version: 1.8.5
  * Author URI: https://www.rocketelements.io
  * License: Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
  * Text Domain: split-test-for-elementor
@@ -42,7 +42,7 @@ use SplitTestForElementor\Classes\Services\CacheCheckService;
  */
 
 define('SPLIT_TEST_FOR_ELEMENTOR_MAIN_FILE', __FILE__);
-define('SPLIT_TEST_FOR_ELEMENTOR_VERSION', "1.8.4");
+define('SPLIT_TEST_FOR_ELEMENTOR_VERSION', "1.8.5");
 define('SPLIT_TEST_FOR_ELEMENTOR_VERSION_OPTION_NAME', "split_test_for_elementor_version");
 define('SPLIT_TEST_FOR_ELEMENTOR_PRO_VERSION_LINK', 'https://www.rocketelements.io/splittest-pro/?utm_source=plugin');
 define('SPLIT_TEST_FOR_ELEMENTOR_LITE_MAX_TEST_COUNT', 5);
@@ -122,7 +122,7 @@ add_action('admin_menu', 'splittest_for_elementor_page');
 // Registering controllers before content is send
 add_action('admin_init', [new AdminInitEvent(), 'fire']);
 function splittest_for_elementor_page_html() {
-	switch (isset($_GET['scope']) ? $_GET['scope'] : "test") {
+	switch (RSTGet::string('scope', 'test')) {
 		case "test"         : (new SplitTestController())->run(); break;
 		case "statistics"   : (new StatisticsController())->run(); break;
 		default             : break;
@@ -144,7 +144,7 @@ add_action('rest_api_init', function () {
 	register_rest_route( 'splitTestForElementor/v1', '/tests/', [
 		'methods' => 'POST',
 		'callback' => array(new TestController(), 'store'),
-        'permission_callback' => '__return_true'
+		'permission_callback' => function() { return SecurityHelper::userHasTestEditPermission(); }
 	]);
 });
 
@@ -160,7 +160,7 @@ add_action('rest_api_init', function () {
 	register_rest_route('splitTestForElementor/v1', '/variations/', [
 		'methods' => 'POST',
 		'callback' => array(new VariationController(), 'store'),
-        'permission_callback' => '__return_true'
+        'permission_callback' => function() { return SecurityHelper::userHasTestEditPermission(); }
 	]);
 });
 

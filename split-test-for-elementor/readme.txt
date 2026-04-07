@@ -200,3 +200,11 @@ Click here for a complete walk through take a look a this video: [https://www.yo
 
 = 1.8.4 =
 * Input filter
+
+= 1.8.5 =
+* As plugin wide security audit was done
+* Fixed XXS issues
+* Fixed sql injection issues
+* Better input filtering
+* Better output filtering
+* Fixed issues on template based tests

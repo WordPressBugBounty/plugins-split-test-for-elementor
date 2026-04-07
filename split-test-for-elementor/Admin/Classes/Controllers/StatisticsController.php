@@ -3,7 +3,10 @@
 namespace SplitTestForElementor\Admin\Classes\Controllers;
 
 use SplitTestForElementor\Admin\Classes\Repo\StatisticsRepo;
+use SplitTestForElementor\Classes\Http\RSTGet;
+use SplitTestForElementor\Classes\Http\RSTPost;
 use SplitTestForElementor\Classes\Misc\LicenceManager;
+use SplitTestForElementor\Classes\Misc\SecurityHelper;
 use SplitTestForElementor\Classes\Misc\Util;
 
 class StatisticsController {
@@ -22,7 +25,8 @@ class StatisticsController {
 	// Index; Create; Store; Show; Edit; Update; Delete
 
 	public function run() {
-		switch ($_GET['action']) {
+		SecurityHelper::verifyUserPermissionsAndDieOnForbidden();
+		switch (RSTGet::string('action', 'index')) {
 			case "show"     :  $this->show(); break;
 			case "edit"     :  $this->edit(); break;
 			case "update"   :  $this->update(); break;
@@ -32,36 +36,37 @@ class StatisticsController {
 
 	public function index() {
 
-		$testId = $_GET['id'];
-		if (!Util::validInt($testId)) {
-			echo("Invalid Test Id");
-			return;
+		if (!RSTGet::tryGetInt('id', $testId)) {
+			wp_die(esc_html__('Invalid Test Id.', 'split-test-for-elementor'), '', ['response' => 400]);
 		}
 
-
 		$startDate = null;
-		if (isset($_POST['start_date_day']) && isset($_POST['start_date_month']) && isset($_POST['start_date_year'])) {
+		if (RSTPost::has('start_date_day') && RSTPost::has('start_date_month') && RSTPost::has('start_date_year')) {
 
-			if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'],'test-nonce') || !is_user_logged_in()) {
-				die("Security Error");
-			}
+			SecurityHelper::verifyNonceAndDieOnInvalid();
 
-			if (Util::validInt($_POST['start_date_day']) && Util::validInt($_POST['start_date_month']) && Util::validInt($_POST['start_date_year'])) {
-				$startDate = $_POST['start_date_day']."-".$_POST['start_date_month']."-".$_POST['start_date_year'];
+			if (RSTPost::tryGetInt('start_date_day', $day) && RSTPost::tryGetInt('start_date_month', $month) && RSTPost::tryGetInt('start_date_year', $year)) {
+				if ($day >= 1 && $day <= 31 && $month >= 1 && $month <= 12 && $year >= 1900 && $year <= 2100) {
+					$startDate = $day."-".$month."-".$year;
+				} else {
+					$message = "invalid_date_input";
+				}
 			} else {
 				$message = "invalid_date_input";
 			}
 		}
 
 		$endDate = null;
-		if (isset($_POST['end_date_day']) && isset($_POST['end_date_month']) && isset($_POST['end_date_year'])) {
+		if (RSTPost::has('end_date_day') && RSTPost::has('end_date_month') && RSTPost::has('end_date_year')) {
 
-			if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'],'test-nonce') || !is_user_logged_in()) {
-				die("Security Error");
-			}
+			SecurityHelper::verifyNonceAndDieOnInvalid();
 
-			if (Util::validInt($_POST['end_date_day']) && Util::validInt($_POST['end_date_month']) && Util::validInt($_POST['end_date_year'])) {
-				$endDate = $_POST['end_date_day']."-".$_POST['end_date_month']."-".$_POST['end_date_year'] . " 23:59:59";
+			if (RSTPost::tryGetInt('end_date_day', $day) && RSTPost::tryGetInt('end_date_month', $month) && RSTPost::tryGetInt('end_date_year', $year)) {
+				if ($day >= 1 && $day <= 31 && $month >= 1 && $month <= 12 && $year >= 1900 && $year <= 2100) {
+					$endDate = $day."-".$month."-".$year . " 23:59:59";
+				} else {
+					$message = "invalid_date_input";
+				}
 			} else {
 				$message = "invalid_date_input";
 			}

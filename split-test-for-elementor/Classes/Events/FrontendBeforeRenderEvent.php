@@ -8,7 +8,9 @@ use Elementor\Plugin;
 use Elementor\Widget_Base;
 use SplitTestForElementor\Classes\Misc\SettingsManager;
 use SplitTestForElementor\Classes\Repo\TestRepo;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Services\CacheBuster;
+use SplitTestForElementor\Classes\Services\ConversionTracker;
 use SplitTestForElementor\Classes\Services\TestService;
 
 class FrontendBeforeRenderEvent {
@@ -23,6 +25,8 @@ class FrontendBeforeRenderEvent {
 	 */
 	private static $testRepo;
 
+    private static $conversionTrack;
+
 	/**
 	 * WidgetRenderContentEvent constructor.
 	 */
@@ -31,11 +35,11 @@ class FrontendBeforeRenderEvent {
 			self::$settingsManager = new SettingsManager();
 			self::$testService = new TestService();
 			self::$testRepo = new TestRepo();
+            self::$conversionTrack = new ConversionTracker();
 		}
 	}
 
 	public function fire(Element_Base $element) {
-
 		if (!$element->get_settings('split_test_control_test_id') || !$element->get_settings('split_test_control_variation_id')) {
 			return;
 		}
@@ -69,25 +73,28 @@ class FrontendBeforeRenderEvent {
 //			}
 //		}
 
-
 		// TODO@kberlau JS Testing
 		if (!self::$settingsManager->getRawValue(SettingsManager::CACHE_BUSTER_ACTIVE)) {
 
-			$targetVariation = $targetVariations[$test->id];
-			foreach ($test->variations as $variation) {
-				if ($variation->id != $targetVariation->id && $variation->id == $variationId) {
-					echo('<style> .elementor-split-test-' . $testId . '-variation-' . $variation->id . ' { display:none !important; height: 0 !important; } </style>');
-				}
-			}
-
-			if ($targetVariation == null) {
+			if (!array_key_exists($test->id, $targetVariations)) {
 				$targetVariation = self::$testService->getActiveVariation($test->id);
 				$targetVariations[$test->id] = $targetVariation;
 
-				$cookieName = "elementor_split_test_" . $test->id . "_variation";
-				if (!isset($_COOKIE[$cookieName])) {
-					echo (new CacheBuster())->RenderSetCookieJs($cookieName, $targetVariation);
-					$_COOKIE[$cookieName] = $targetVariation->id;
+				$cookieName = $test->id . "_variation";
+				if (!RSTCookie::has($cookieName)) {
+					echo (new CacheBuster())->RenderSetCookieJs(RSTCookie::PREFIX . $cookieName, $targetVariation);
+                    RSTCookie::set($cookieName, $targetVariation->id);
+
+                    $clientId = RSTCookie::string('client_id', '', false);
+                    self::$conversionTrack->trackView($test->id, $targetVariation->id, $clientId);
+				}
+			} else {
+                $targetVariation = $targetVariations[$test->id];
+            }
+
+            foreach ($test->variations as $variation) {
+				if ($variation->id != $targetVariation->id && $variation->id == $variationId) {
+					echo('<style> .elementor-split-test-' . (int) $testId . '-variation-' . (int) $variation->id . ' { display:none !important; height: 0 !important; } </style>');
 				}
 			}
 		}
@@ -99,7 +106,7 @@ class FrontendBeforeRenderEvent {
 			?>
 				<script type="text/javascript">
 					try {
-						window.rocketSplitTest.addTest(<?php echo(json_encode(self::$testService->getTestDataForJs($test))); ?>);
+						window.rocketSplitTest.addTest(<?php echo wp_json_encode(self::$testService->getTestDataForJs($test)); ?>);
 					} catch (e) {
 						console.log(e);
 					}

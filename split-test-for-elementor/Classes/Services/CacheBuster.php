@@ -5,6 +5,7 @@ namespace SplitTestForElementor\Classes\Services;
 use Elementor\Plugin;
 use SplitTestForElementor\Classes\Misc\SettingsManager;
 use SplitTestForElementor\Classes\Repo\TestRepo;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Misc\Constants;
 
 class CacheBuster
@@ -48,17 +49,18 @@ class CacheBuster
 		if (self::$settingsManager->getRawValue(SettingsManager::CACHE_BUSTER_ACTIVE)) {
 			$content = $this->RenderCacheBusterContentJs($content, $element, $test, $testId, $variationId);
 		} else {
-			$targetVariation = isset($targetVariations[$test->id]) ? $targetVariations[$test->id] : null;
+			$targetVariation = $targetVariations[$test->id] ?? null;
+            // TODO@kberlau: I might make this a generic function
 			if ($targetVariation == null) {
 				$targetVariation = self::$testService->getActiveVariation($test->id);
 				$targetVariations[$test->id] = $targetVariation;
 
 				$cookieName = "elementor_split_test_" . $test->id . "_variation";
-				if (!isset($_COOKIE[$cookieName])) {
+				if (!RSTCookie::has($test->id . '_variation')) {
 					$content = $content . $this->RenderSetCookieJs($cookieName, $targetVariation);
-					$_COOKIE[$cookieName] = $targetVariation->id;
+                    RSTCookie::set($test->id . '_variation', $targetVariation->id);
 
-					$clientId = $_COOKIE[Constants::$SPLIT_TEST_CLIENT_ID_COOKIE];
+					$clientId = RSTCookie::string('client_id', '', false);
 					self::$conversionTrack->trackView($test->id, $targetVariation->id, $clientId);
 				}
 			}
@@ -83,7 +85,7 @@ class CacheBuster
 		?>
 		<script type="text/javascript">
 			try {
-				window.rocketSplitTest.cookie.create("<?php echo($cookieName); ?>", <?php  echo($targetVariation->id); ?>, 365);
+				window.rocketSplitTest.cookie.create("<?php echo esc_js($cookieName); ?>", <?php echo (int) $targetVariation->id; ?>, 365);
 			} catch (e) {
 				console.log(e);
 			}
@@ -106,10 +108,10 @@ class CacheBuster
 		$placeholderId = "rocket-test-placeholder-" . rand(10000000, 99999999) . "-" . $element->get_id();
 		ob_start();
 		?>
-		<div id="<?php echo($placeholderId); ?>"></div>
+		<div id="<?php echo esc_attr($placeholderId); ?>"></div>
 		<script type="text/javascript">
 			try {
-				window.rocketSplitTest.addTest(<?php echo(json_encode(self::$testService->getTestDataForJs($test))); ?>);
+				window.rocketSplitTest.addTest(<?php echo wp_json_encode(self::$testService->getTestDataForJs($test)); ?>);
 			} catch (e) {
 				console.log(e);
 			}
@@ -117,7 +119,7 @@ class CacheBuster
 		<script type="text/javascript">
 			try {
 				var content = decodeURIComponent(('<?php echo urlencode(str_replace(array("\r", "\n", "\t"), '', $content)); ?>').replace(/\+/g, " "));
-                window.rocketSplitTest.maybeRenderTestVariant(<?php echo($testId); ?>, <?php echo($variationId); ?>, content, "<?php echo($placeholderId); ?>");
+                window.rocketSplitTest.maybeRenderTestVariant(<?php echo (int) $testId; ?>, <?php echo (int) $variationId; ?>, content, "<?php echo esc_js($placeholderId); ?>");
 			} catch (e) {
 				console.log(e);
 			}
@@ -137,7 +139,7 @@ class CacheBuster
 		ob_start();
 		?>
 		<style>
-            .elementor-element-<?php echo($element->get_id()); ?> {
+            .elementor-element-<?php echo sanitize_html_class($element->get_id()); ?> {
                 display: none !important;
                 height: 0 !important;
             }

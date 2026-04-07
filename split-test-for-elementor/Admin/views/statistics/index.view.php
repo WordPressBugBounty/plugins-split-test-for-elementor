@@ -49,13 +49,13 @@ foreach ($sortedVariations as $variation) {
 
 	<?php //LOW@kberlau Multi Test Overflow ?>
 	<div class="split-test-variation-wrapper">
-		<?php for($i = 0; $i < sizeof($variations); $i++) { $variation = $variations[$i]; ?>
-			<div class="variation-box variation-box-<?php echo($i + 1); ?>" style="background: <?php echo(ColorUtil::getColor($i + 1));  ?>">
+		<?php for($i = 0; $i < count($variations); $i++) { $variation = $variations[$i]; ?>
+			<div class="variation-box variation-box-<?php echo esc_attr($i + 1); ?>" style="background: <?php echo esc_attr(ColorUtil::getColor($i + 1)); ?>">
 				<div class="variation-content">
-					<div class="headline"><?php echo($variation->name); ?></div>
+					<div class="headline"><?php echo esc_html($variation->name); ?></div>
 					<!-- <div class="options">&times;</div> -->
-					<div class="conversion-rate"><?php echo($variation->conversionRate); ?>%</div>
-					<div class="ranking">#<?php echo($variation->ranking); ?></div>
+					<div class="conversion-rate"><?php echo esc_html($variation->conversionRate); ?>%</div>
+					<div class="ranking">#<?php echo esc_html($variation->ranking); ?></div>
 				</div>
 			</div>
 		<?php } ?>
@@ -80,19 +80,19 @@ foreach ($sortedVariations as $variation) {
 	<div class="split-test-date-range">
 		<h2><?php esc_html_e( 'Timerange', 'split-test-for-elementor' ); ?></h2>
 		<p class="hint"><?php esc_html_e( 'Select your analytics period', 'split-test-for-elementor' ); ?></p>
-		<form action="<?php echo htmlentities($_SERVER["REQUEST_URI"]); ?>" method="post">
-			<input name="nonce" type="hidden" value="<?php echo(wp_create_nonce('test-nonce')); ?>" />
+		<form action="<?php echo esc_url($_SERVER["REQUEST_URI"]); ?>" method="post">
+			<input name="nonce" type="hidden" value="<?php echo esc_attr(wp_create_nonce('test-nonce')); ?>" />
 			<div class="form-row">
 				<label>Start:</label>
-				<input class="date-year" type="text" name="start_date_year" placeholder="YYYY" value="<?php echo($startDate != null ? date("Y", strtotime($startDate)) : ""); ?>" />
-				<input class="date-month" type="text" name="start_date_month" placeholder="MM" value="<?php echo($startDate != null ? date("m", strtotime($startDate)) : ""); ?>" />
-				<input class="date-day" type="text" name="start_date_day" placeholder="DD" value="<?php echo($startDate != null ? date("d", strtotime($startDate)) : ""); ?>" />
+				<input class="date-year" type="text" name="start_date_year" placeholder="YYYY" value="<?php echo esc_attr($startDate != null ? date("Y", strtotime($startDate)) : ""); ?>" />
+				<input class="date-month" type="text" name="start_date_month" placeholder="MM" value="<?php echo esc_attr($startDate != null ? date("m", strtotime($startDate)) : ""); ?>" />
+				<input class="date-day" type="text" name="start_date_day" placeholder="DD" value="<?php echo esc_attr($startDate != null ? date("d", strtotime($startDate)) : ""); ?>" />
 			</div>
 			<div class="form-row">
 				<label>End:</label>
-				<input class="date-year" type="text" name="end_date_year" placeholder="YYYY" value="<?php echo($endDate != null ? date("Y", strtotime($endDate)) : ""); ?>" />
-				<input class="date-month" type="text" name="end_date_month" placeholder="MM" value="<?php echo($endDate != null ? date("m", strtotime($endDate)) : ""); ?>" />
-				<input class="date-day" type="text" name="end_date_day" placeholder="DD" value="<?php echo($endDate != null ? date("d", strtotime($endDate)) : ""); ?>" />
+				<input class="date-year" type="text" name="end_date_year" placeholder="YYYY" value="<?php echo esc_attr($endDate != null ? date("Y", strtotime($endDate)) : ""); ?>" />
+				<input class="date-month" type="text" name="end_date_month" placeholder="MM" value="<?php echo esc_attr($endDate != null ? date("m", strtotime($endDate)) : ""); ?>" />
+				<input class="date-day" type="text" name="end_date_day" placeholder="DD" value="<?php echo esc_attr($endDate != null ? date("d", strtotime($endDate)) : ""); ?>" />
 			</div>
 			<div class="form-row">
 				<!-- <div class="set-hole-range-button date-range-button">Set hole range</div>-->
@@ -110,7 +110,7 @@ foreach ($sortedVariations as $variation) {
 		var chartCtx = document.getElementById("lineChart").getContext('2d');
 		var scatterChart = new Chart(chartCtx, {
 			type: 'line',
-			data: <?php echo(json_encode($chartData)); ?>,
+			data: <?php echo wp_json_encode($chartData); ?>,
 			options: {
 				scales: {
 					xAxes: [{
@@ -129,7 +129,7 @@ foreach ($sortedVariations as $variation) {
 		var doughnutCtx = document.getElementById("doughnutChart").getContext('2d');
 		var doughnutChart = new Chart(doughnutCtx, {
 			type: 'doughnut',
-			data: <?php echo(json_encode($doughnutData)); ?>,
+			data: <?php echo wp_json_encode($doughnutData); ?>,
 			options: {
 				cutoutPercentage: 50
 			}
@@ -152,11 +152,11 @@ foreach ($sortedVariations as $variation) {
 			<?php foreach ($variations as $key => $variation) { ?>
 				<tr>
 					<td class="indicator" style="background: <?php echo(ColorUtil::getColor($key + 1)); ?>">&nbsp;</td>
-					<td><?php echo($variation->name); ?></td>
-					<td><?php echo($variation->percentage); ?></td>
-					<td><?php echo($variation->allViews); ?></td>
-					<td><?php echo($variation->allConversions); ?></td>
-					<td><?php echo($variation->conversionRate); ?>%</td>
+					<td><?php echo esc_html($variation->name); ?></td>
+					<td><?php echo esc_html($variation->percentage); ?></td>
+					<td><?php echo esc_html($variation->allViews); ?></td>
+					<td><?php echo esc_html($variation->allConversions); ?></td>
+					<td><?php echo esc_html($variation->conversionRate); ?>%</td>
 				</tr>
 			<?php } ?>
 			<?php if (!self::$licenceManager->hasActiveProLicence()) { ?>

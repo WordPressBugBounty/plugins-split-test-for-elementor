@@ -146,7 +146,7 @@ class SplitTestControl {
 								<select id="split-test-for-elementor-conversion-page-selector">
 									<option value="null"></option>
 									<?php foreach ($postData as $post) { ?>
-										<option value="<?php echo($post['id']); ?>"><?php echo($post['postTitle']); ?></option>
+										<option value="<?php echo esc_attr($post['id']); ?>"><?php echo esc_html($post['postTitle']); ?></option>
 									<?php } ?>
 								</select>
 							</div>
@@ -170,7 +170,7 @@ class SplitTestControl {
 						<div class="elementor-control-field">
 							<label for="elementor-control-default-c662" class="elementor-control-title"><?php esc_html_e( 'Tracking Code', 'split-test-for-elementor' ); ?>:</label>
 							<div class="elementor-control-input-wrapper">
-								<textarea readonly id="external-page-tracking-code"><?php echo($trackingUrl); ?></textarea>
+								<textarea readonly id="external-page-tracking-code"><?php echo esc_url($trackingUrl); ?></textarea>
 							</div>
 						</div>
 					</div>
@@ -216,21 +216,21 @@ class SplitTestControl {
 
 		</div>
 
-		<?php 
+        <?php
 
-			$testDataCleaned = str_replace("'", "", json_encode( $testData ));
-			$testDataCleaned = str_replace("´", "", $testDataCleaned );
-			$testDataCleaned = str_replace("`", "", $testDataCleaned );
-			$postDataCleaned = str_replace("'", "", json_encode( $postData ));
-			$postDataCleaned = str_replace("´", "", $postDataCleaned );
-			$postDataCleaned = str_replace("`", "", $postDataCleaned );
+        $testDataCleaned = str_replace("'", "", wp_json_encode($testData));
+        $testDataCleaned = str_replace("´", "", $testDataCleaned );
+        $testDataCleaned = str_replace("`", "", $testDataCleaned );
+        $postDataCleaned = str_replace("'", "", wp_json_encode( $postData ));
+        $postDataCleaned = str_replace("´", "", $postDataCleaned );
+        $postDataCleaned = str_replace("`", "", $postDataCleaned );
 
-		?>
+        ?>
 
-			<script type="text/javascript" id="split-test-for-elementor-jscode">
+		<script type="text/javascript" id="split-test-for-elementor-jscode">
 			window.splitTestForElementor.data = {
-				testData: <?php echo($testDataCleaned); ?>,
-				postData: <?php echo( $postDataCleaned ); ?>,
+                testData: <?php echo($testDataCleaned); ?>,
+                postData: <?php echo( $postDataCleaned ); ?>,
 				wpNonce: "<?php echo(wp_create_nonce('wp_rest')); ?>"
 			};
 

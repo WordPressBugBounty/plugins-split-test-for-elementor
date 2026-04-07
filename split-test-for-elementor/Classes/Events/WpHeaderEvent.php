@@ -21,10 +21,13 @@ class WpHeaderEvent {
 		// TODO@kberlau: May not use global
 		global $rocketSplitTestRunningTests;
 
-		?>
+        $host = esc_js(parse_url(home_url('/'), PHP_URL_HOST));
+        $path = esc_js(parse_url(home_url('/'), PHP_URL_PATH));
+        $protocol = is_ssl() ? "https" : "http";
+        // 'http<?php echo(is_ssl() ? "s" : ""); ?>
 
 		<script type="text/javascript">
-				window.rocketSplitTest = { 'config': { 'page': { 'base': { 'protocol': 'http<?php echo(is_ssl() ? "s" : ""); ?>://', 'host': '<?php echo(parse_url(home_url('/'), PHP_URL_HOST)); ?>', 'path': '<?php echo(parse_url(home_url('/'), PHP_URL_PATH)); ?>' } } } };
+				window.rocketSplitTest = { 'config': { 'page': { 'base': { 'protocol': '<?php echo $protocol; ?>://', 'host': '<?php echo $host; ?>', 'path': '<?php echo $path; ?>' } } } };
 				window.rocketSplitTest.cookie = { };
 				window.rocketSplitTest.cookie.create = function (name, value, days) {
 					var date = new Date();
@@ -66,9 +69,9 @@ class WpHeaderEvent {
 			<script type="text/javascript">
 				window.rocketSplitTest.conversion = { };
 				window.rocketSplitTest.helpers = { };
-				window.rocketSplitTest.tests = <?php echo(json_encode($rocketSplitTestRunningTests)); ?>;
-				window.rocketSplitTest.conversion.testIds = <?php echo(json_encode($conversionTestIds)); ?>;
-                window.rocketSplitTest.distributeType = "<?php echo(self::$settingsManager->getRawValue(SettingsManager::VARIANT_DISTRIBUTION_TYPE)); ?>";
+				window.rocketSplitTest.tests = <?php echo(wp_json_encode($rocketSplitTestRunningTests)); ?>;
+				window.rocketSplitTest.conversion.testIds = <?php echo(wp_json_encode($conversionTestIds)); ?>;
+                window.rocketSplitTest.distributeType = "<?php echo esc_js(self::$settingsManager->getRawValue(SettingsManager::VARIANT_DISTRIBUTION_TYPE)); ?>";
 
 				window.rocketSplitTest.helpers.getRequest = function (path, callback) {
 					var urlBase = window.rocketSplitTest.config.page.base;
@@ -225,6 +228,7 @@ class WpHeaderEvent {
 				}
 
 				window.rocketSplitTest.maybeRenderTestVariant = function (testId, variantId, content, containerId) {
+                    var parentElement = document.getElementById(containerId).parentElement;
 
 					if (window.rocketSplitTest.distributeType === "database") {
 						var test = window.rocketSplitTest.getTestById(testId);
@@ -238,16 +242,10 @@ class WpHeaderEvent {
 							return;
 						}
 
-						if (!window.window.rocketSplitTest.isActiveVariation(testId, variantId)) {
-							document.getElementById(containerId).parentElement.innerHTML = "";
-						}
-						window.rocketSplitTest.setInnerHtml(document.getElementById(containerId).parentElement, content);
-					} else {
-						if (!window.window.rocketSplitTest.isActiveVariation(testId, variantId)) {
-							document.getElementById(containerId).parentElement.innerHTML = "";
-						}
-						window.rocketSplitTest.setInnerHtml(document.getElementById(containerId).parentElement, content);
 					}
+
+                    var innerHTML = window.rocketSplitTest.isActiveVariation(testId, variantId) ? content : "";
+                    window.rocketSplitTest.setInnerHtml(parentElement, innerHTML);
 				}
 
 			</script>

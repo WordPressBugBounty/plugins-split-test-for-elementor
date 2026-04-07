@@ -3,6 +3,7 @@
 namespace SplitTestForElementor\Admin\Classes\Elementor;
 
 use \Elementor\Widget_Base;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Services\ConversionTracker;
 use SplitTestForElementor\Classes\Repo\TestRepo;
 
@@ -68,13 +69,12 @@ class ConversionWidget extends Widget_Base {
 
 			global $clientId;
 
-			$cookieName = "elementor_split_test_".$test->id."_variation";
-			if(!isset($_COOKIE[$cookieName])) {
+			if (!RSTCookie::has($test->id . '_variation')) {
 				return;
 			}
 
 			$conversionTracker = new ConversionTracker();
-			$variationId = (int) $_COOKIE[$cookieName];
+			$variationId = RSTCookie::int($test->id . '_variation');
 			foreach ($test->variations as $variation) {
 				if ($variationId == $variation->id) {
 					$conversionTracker->trackConversion($test->id, $variationId, $clientId);

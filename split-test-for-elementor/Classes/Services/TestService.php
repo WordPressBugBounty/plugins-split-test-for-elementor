@@ -2,6 +2,9 @@
 
 namespace SplitTestForElementor\Classes\Services;
 
+use SplitTestForElementor\Classes\Database\RSTQueryBuilder;
+use SplitTestForElementor\Classes\Http\RSTCookie;
+use SplitTestForElementor\Classes\Http\RSTGet;
 use SplitTestForElementor\Classes\Misc\SettingsManager;
 use SplitTestForElementor\Classes\Repo\PostTestManager;
 use SplitTestForElementor\Classes\Repo\PostTestRepo;
@@ -39,16 +42,15 @@ class TestService
 			return null;
 		}
 
-		$cookieName = "elementor_split_test_" . $test->id . "_variation";
 		$targetVariation = null;
 
 		$splitTestVariationId = null;
-		if (isset($_COOKIE[$cookieName])) {
-			$splitTestVariationId = $_COOKIE[$cookieName];
+		if (RSTCookie::has($test->id . '_variation')) {
+			$splitTestVariationId = RSTCookie::string($test->id . '_variation', '', false);
 		}
 
-		if (isset($_GET['stid'])) {
-			$splitTestVariationId = $_GET['stid'];
+		if (RSTGet::has('stid')) {
+			$splitTestVariationId = RSTGet::string('stid', '', false);
 		}
 
 		if ($splitTestVariationId != null)  {
@@ -75,6 +77,14 @@ class TestService
 			$fullPercentageCount += (int) $variation->percentage;
 		}
 
+		if ($fullPercentageCount <= 0) {
+			$equal = count($variations) > 0 ? 100 / count($variations) : 0;
+			foreach ($variations as $variation) {
+				$variation->normalizedPercentage = $equal;
+			}
+			return $variations;
+		}
+
 		foreach ($variations as $variation) {
 			$variation->normalizedPercentage = $variation->percentage * 100 / $fullPercentageCount;
 		}
@@ -82,21 +92,19 @@ class TestService
 		return $variations;
 	}
 
+
+
 	public function getTargetVariation($test)
 	{
 		$targetVariation = null;
 		$variations = $this->normalizePercentages($test->variations);
 
-
 		if (self::$settingsManager->getRawValue(SettingsManager::VARIANT_DISTRIBUTION_TYPE) === 'database') {
-			global $wpdb;
-
-			$query = [];
-			$query[] = "SELECT COUNT(*) as count, variation_id";
-			$query[] = "FROM " . $wpdb->prefix . "elementor_splittest_interactions";
-			$query[] = "WHERE splittest_id = " . $test->id . " GROUP BY variation_id";
-
-			$viewsAndConversions = $wpdb->get_results(implode(" ", $query));
+			$viewsAndConversions = RSTQueryBuilder::table('elementor_splittest_interactions')
+				->select(['COUNT(*) as count', 'variation_id'])
+				->where('splittest_id', (int) $test->id)
+				->groupBy('variation_id')
+				->get();
 
 			if (sizeof($viewsAndConversions) > 0) {
 				$lowestCount = $this->getVariationViewsAndConversionsCountById($viewsAndConversions, $variations[0]->id);

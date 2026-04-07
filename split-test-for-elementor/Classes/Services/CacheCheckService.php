@@ -38,7 +38,7 @@ class CacheCheckService {
 	public function runCheck() {
         // TODO we might have a better place "to check this"
         $url = $_SERVER["REQUEST_URI"];
-        if (!str_contains($url, "page=splittest-for-elementor")) {
+        if (strpos($url, "page=splittest-for-elementor") === false) {
             return;
         }
 

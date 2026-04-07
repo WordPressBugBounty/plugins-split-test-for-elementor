@@ -3,9 +3,7 @@
 namespace SplitTestForElementor\Classes\Services;
 
 use SplitTestForElementor\Classes\Misc\SettingsManager;
-use SplitTestForElementor\Classes\Services\ConversionTracker;
-use SplitTestForElementor\Classes\Misc\Constants;
-use SplitTestForElementor\Classes\Misc\Util;
+use SplitTestForElementor\Classes\Http\RSTCookie;
 use SplitTestForElementor\Classes\Repo\PostTestManager;
 use SplitTestForElementor\Classes\Repo\PostTestRepo;
 use SplitTestForElementor\Classes\Repo\TestRepo;
@@ -76,12 +74,11 @@ class ExternalPageTrackingService {
         if ($test == null) {
             return;
         }
-        $cookieName = "elementor_split_test_".$test->id."_variation";
-        if(!isset($_COOKIE[$cookieName])) {
+        if (!RSTCookie::has($test->id . '_variation')) {
             return;
         }
 
-        $variationId = (int) $_COOKIE[$cookieName];
+        $variationId = RSTCookie::int($test->id . '_variation');
         foreach ($test->variations as $variation) {
             if ($variationId == $variation->id) {
                 self::$conversionTrack->trackConversion($test->id, $variationId, $rocketSplitTestClientId);

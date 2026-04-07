@@ -2,9 +2,10 @@
 
 namespace SplitTestForElementor\Classes\Events;
 
+use SplitTestForElementor\Classes\Http\RSTCookie;
+use SplitTestForElementor\Classes\Http\RSTGet;
 use SplitTestForElementor\Classes\Misc\SettingsManager;
 use SplitTestForElementor\Classes\Services\ConversionTracker;
-use SplitTestForElementor\Classes\Misc\Constants;
 use SplitTestForElementor\Classes\Misc\Util;
 use SplitTestForElementor\Classes\Repo\PostTestManager;
 use SplitTestForElementor\Classes\Repo\PostTestRepo;
@@ -36,7 +37,7 @@ class SendHeadersEvent {
 
 	public function fire() {
 
-		if (isset($_GET['elementor-preview'])) {
+		if (RSTGet::has('elementor-preview')) {
 			return;
 		}
 
@@ -52,14 +53,14 @@ class SendHeadersEvent {
 		// TODO: Change this to $rocketSplitTestClientId
 		global $clientId;
 		global $rocketSplitTestClientId;
-		$splitTestClientIdCookieName = Constants::$SPLIT_TEST_CLIENT_ID_COOKIE;
-		if (!isset($_COOKIE[$splitTestClientIdCookieName])) {
+		if (!RSTCookie::has(RSTCookie::CLIENT_ID)) {
 			$clientId = Util::generateV4UUID();
+			// TODO@kberlau: We might remove that condition
             if (!self::$settingsManager->getRawValue(SettingsManager::CACHE_BUSTER_ACTIVE)) {
-			    Util::setCookie($splitTestClientIdCookieName, $clientId);
+			    RSTCookie::set(RSTCookie::CLIENT_ID, $clientId, '+12 month', true);
             }
 		} else {
-			$clientId = $_COOKIE[$splitTestClientIdCookieName];
+			$clientId = RSTCookie::string(RSTCookie::CLIENT_ID, '', false);
 		}
 		$rocketSplitTestClientId = $clientId;
 
@@ -86,12 +87,11 @@ class SendHeadersEvent {
 
 	private function progressConversionsForTests($tests, $clientId) {
 		foreach ($tests as $test) {
-			$cookieName = "elementor_split_test_".$test->id."_variation";
-			if(!isset($_COOKIE[$cookieName])) {
+			if (!RSTCookie::has($test->id . '_variation')) {
 				continue;
 			}
 
-			$variationId = (int) $_COOKIE[$cookieName];
+			$variationId = RSTCookie::int($test->id . '_variation');
 			// TODO@kberlau: Is this necessary
 			foreach ($test->variations as $variation) {
 				if ($variationId == $variation->id) {
@@ -123,8 +123,7 @@ class SendHeadersEvent {
 
 		if (self::$settingsManager->getRawValue(SettingsManager::CACHE_BUSTER_ACTIVE)) {
 
-			$splitTestClientIdCookieName = Constants::$SPLIT_TEST_CLIENT_ID_COOKIE;
-			Util::setCookie($splitTestClientIdCookieName, $clientId);
+			RSTCookie::set(RSTCookie::CLIENT_ID, $clientId, '+12 month', true);
 
 			header('Cache-Control: no-store, private, no-cache, must-revalidate');     // HTTP/1.1
 			header('Cache-Control: pre-check=0, post-check=0, max-age=0, max-stale=0', false);  // HTTP/1.1
@@ -141,18 +140,22 @@ class SendHeadersEvent {
         // TODO@kberlau: Add no cache
 		foreach ($test->variations as $variation) {
 			if ($variation->id == $targetVariation->id) {
+				// TODO@kberlau: Refactor for urlQueryParams
 				if ($test->test_type == "pages") {
-					if ($urlQueryParams == "") {
-						wp_redirect(get_permalink($variation->post_id), 302);
-					} else {
-						wp_redirect(get_permalink($variation->post_id).'?'.$urlQueryParams, 302);
+					$dest = get_permalink($variation->post_id);
+					if ($urlQueryParams != "") {
+						$dest .= '?' . $urlQueryParams;
 					}
+					wp_redirect($dest, 302);
 				} else if ($test->test_type == "urls") {
-					if ($urlQueryParams == "") {
-						wp_redirect( $variation->url, 302 );
-					} else {
-						wp_redirect( $variation->url .'?'.$urlQueryParams, 302 );
+					if (empty($variation->url) || !wp_http_validate_url($variation->url)) {
+						exit;
 					}
+					$dest = esc_url_raw($variation->url);
+					if ($urlQueryParams != "") {
+						$dest .= '?' . $urlQueryParams;
+					}
+					wp_redirect($dest, 302);
 				}
 				exit;
 			}
@@ -181,26 +184,23 @@ class SendHeadersEvent {
 		$targetVariations = [];
 
 		foreach ($tests as $test) {
-			$cookieName = "elementor_split_test_" . $test->id . "_variation";
 			$targetVariation = null;
 
 			$splitTestId = null;
-			if (isset($_COOKIE[$cookieName])) {
-				$splitTestId = $_COOKIE[$cookieName];
+			if (RSTCookie::has($test->id . '_variation')) {
+				$splitTestId = RSTCookie::int($test->id . '_variation');
 			}
-			if (isset($_GET['stid'])) {
-				$splitTestId = $_GET['stid'];
+			if (RSTGet::has('stid')) {
+				$splitTestId = RSTGet::int('stid'); // TODO@kberlau: Document this
 			}
 
 			if ($splitTestId != null)  {
-				if (filter_var($splitTestId, FILTER_VALIDATE_INT)) {
 					foreach ($test->variations as $variation) {
-						if ((int) $splitTestId == $variation->id) {
+						if ($splitTestId == $variation->id) {
 							$targetVariation = $variation;
 							break;
 						}
 					}
-				}
 			}
 
 			if ($targetVariation == null) {
@@ -208,7 +208,7 @@ class SendHeadersEvent {
 			}
 
 			if ($targetVariation != null) {
-				Util::setCookie($cookieName, $targetVariation->id);
+				RSTCookie::set($test->id . '_variation', $targetVariation->id);
 			} else {
 				// LOW@kberlau ERROR!
 			}
