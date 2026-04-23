@@ -208,3 +208,6 @@ Click here for a complete walk through take a look a this video: [https://www.yo
 * Better input filtering
 * Better output filtering
 * Fixed issues on template based tests
+
+= 1.8.6 =
+* solved compatibility issue

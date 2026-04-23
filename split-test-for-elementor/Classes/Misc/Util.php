@@ -27,6 +27,13 @@ class Util {
 		);
 	}
 
+	public static function setCookie($name, $value, $time = '+12 month') {
+		$path = parse_url(home_url('/'), PHP_URL_PATH);
+		$host = parse_url(home_url('/'), PHP_URL_HOST);
+		$expiry = strtotime($time);
+		setcookie($name, $value, $expiry, $path, $host);
+		$_COOKIE[$name] = $value;
+	}
 	public static function isValidUuid($value) {
 		if (!is_string($value)) {
 			return false;
