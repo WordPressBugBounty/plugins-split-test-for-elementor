@@ -75,7 +75,9 @@ class FrontendBeforeRenderEvent {
 
 		// TODO@kberlau JS Testing
 		if (!self::$settingsManager->getRawValue(SettingsManager::CACHE_BUSTER_ACTIVE)) {
-
+            if ($targetVariations == null) {
+                $targetVariations = [];
+            }
 			if (!array_key_exists($test->id, $targetVariations)) {
 				$targetVariation = self::$testService->getActiveVariation($test->id);
 				$targetVariations[$test->id] = $targetVariation;

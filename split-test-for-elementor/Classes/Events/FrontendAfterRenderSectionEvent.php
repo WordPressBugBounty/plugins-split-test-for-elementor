@@ -37,7 +37,7 @@ class FrontendAfterRenderSectionEvent
 			return;
 		}
 
-		$class    = 'elementor-split-test-hidden-' . (int) $element->get_id();
+		$class    = 'elementor-split-test-hidden-' . $element->get_id();
 		$testId   = (int) $testId;
         $variationId    = (int) $variationId;
 

@@ -211,3 +211,6 @@ Click here for a complete walk through take a look a this video: [https://www.yo
 
 = 1.8.6 =
 * solved compatibility issue
+
+= 1.8.7 =
+* fixed id mapping issue
