@@ -2,7 +2,7 @@
 Contributors: novacreator
 Tags: Online Marketing, Split testing, Elementor
 Requires at least: 4.9
-Tested up to: 6.8.1
+Tested up to: 6.9.4
 Stable tag: 1.0.7
 License: Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
 License URI:
@@ -214,3 +214,6 @@ Click here for a complete walk through take a look a this video: [https://www.yo
 
 = 1.8.7 =
 * fixed id mapping issue
+
+= 1.8.8 =
+* fixed issue with view and conversion tracking

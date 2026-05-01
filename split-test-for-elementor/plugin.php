@@ -24,7 +24,7 @@ use SplitTestForElementor\Classes\Services\CacheCheckService;
 
 /**
  * @package SplitTestForElementor
- * @version 1.8.7
+ * @version 1.8.8
  * @copyright Copyright (C) 2025 Rocket Elements
  * @license Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
 
@@ -32,7 +32,7 @@ use SplitTestForElementor\Classes\Services\CacheCheckService;
  * Plugin URI: https://wordpress.org/plugins/split-test-for-elementor/
  * Description: Split Test For Elementor
  * Author: Rocket Elements
- * Version: 1.8.7
+ * Version: 1.8.8
  * Author URI: https://www.rocketelements.io
  * License: Free for use if not bundle as a product. Code changes forbidden. Bundling and / or selling parts of this or as a whole is forbidden if not explicitly allowed by the author.
  * Text Domain: split-test-for-elementor

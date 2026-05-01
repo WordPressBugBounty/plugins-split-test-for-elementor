@@ -8,7 +8,7 @@ use SplitTestForElementor\Classes\Misc\Util;
 class ConversionTracker {
 
 	public function trackView($testId, $variationId, $clientId) {
-		if (!Util::isValidUuid($clientId)) {
+		if (!$clientId) {
 			return;
 		}
 
@@ -30,7 +30,7 @@ class ConversionTracker {
 	}
 
 	public function trackConversion($testId, $variationId, $clientId) {
-		if (!Util::isValidUuid($clientId)) {
+		if (!$clientId) {
 			return;
 		}
 
